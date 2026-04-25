@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ことばマスター</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --primary: #3b82f6;
+        --primary-dark: #1e40af;
+        --ok: #0f766e;
+        --ng: #b91c1c;
+        --text: #0f172a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+        background: linear-gradient(160deg, #eff6ff, #f8fafc 35%, #ecfeff);
+        color: var(--text);
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+      }
+
+      .app {
+        width: min(900px, 100%);
+        background: var(--card);
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
+        overflow: hidden;
+      }
+
+      header {
+        padding: 1.2rem 1.5rem;
+        background: #dbeafe;
+        border-bottom: 1px solid #bfdbfe;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.4rem;
+      }
+
+      .subtitle {
+        margin-top: 0.35rem;
+        color: #334155;
+        font-size: 0.95rem;
+      }
+
+      main {
+        padding: 1.5rem;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .status {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.95rem;
+      }
+
+      .badge {
+        background: #f1f5f9;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+      }
+
+      .card {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 1.2rem;
+        background: #fff;
+      }
+
+      .prompt {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+      }
+
+      .options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.7rem;
+      }
+
+      .option-btn,
+      button {
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #0f172a;
+        border-radius: 10px;
+        padding: 0.7rem 0.8rem;
+        font-size: 0.98rem;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .option-btn:hover,
+      button:hover {
+        transform: translateY(-1px);
+        border-color: #93c5fd;
+      }
+
+      .option-btn.correct {
+        background: #ccfbf1;
+        border-color: #14b8a6;
+      }
+
+      .option-btn.wrong {
+        background: #fee2e2;
+        border-color: #f87171;
+      }
+
+      .controls {
+        display: flex;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+      }
+
+      .primary {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary-dark);
+      }
+
+      .message {
+        min-height: 1.5em;
+        font-weight: 600;
+      }
+
+      .message.ok {
+        color: var(--ok);
+      }
+
+      .message.ng {
+        color: var(--ng);
+      }
+
+      details {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.7rem 0.9rem;
+      }
+
+      ul {
+        margin: 0.5rem 0 0;
+      }
+
+      @media (max-width: 520px) {
+        .prompt {
+          font-size: 1.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>ことばマスター 🇯🇵</h1>
+        <p class="subtitle">日本語の単語をクイズ形式で覚える学習ゲーム</p>
+      </header>
+
+      <main>
+        <section class="status" aria-live="polite">
+          <span class="badge" id="progress">問題: 0 / 0</span>
+          <span class="badge" id="score">スコア: 0</span>
+          <span class="badge" id="streak">連続正解: 0</span>
+        </section>
+
+        <section class="card" aria-label="クイズカード">
+          <div class="prompt" id="prompt">読み込み中...</div>
+          <div class="options" id="options"></div>
+          <p id="message" class="message"></p>
+        </section>
+
+        <section class="controls">
+          <button class="primary" id="nextBtn">次の問題へ</button>
+          <button id="resetBtn">最初からやり直す</button>
+        </section>
+
+        <details>
+          <summary>遊び方</summary>
+          <ul>
+            <li>表示された日本語単語の意味として正しい選択肢を選びます。</li>
+            <li>正解すると +10 点、不正解でも正解を確認して次に進めます。</li>
+            <li>連続正解数（ストリーク）を伸ばして語彙力アップ！</li>
+          </ul>
+        </details>
+      </main>
+    </div>
+
+    <script>
+      const words = [
+        { jp: "猫", meaning: "cat" },
+        { jp: "犬", meaning: "dog" },
+        { jp: "学校", meaning: "school" },
+        { jp: "先生", meaning: "teacher" },
+        { jp: "水", meaning: "water" },
+        { jp: "山", meaning: "mountain" },
+        { jp: "海", meaning: "sea" },
+        { jp: "電車", meaning: "train" },
+        { jp: "友達", meaning: "friend" },
+        { jp: "時間", meaning: "time" },
+        { jp: "朝", meaning: "morning" },
+        { jp: "夜", meaning: "night" },
+      ];
+
+      const promptEl = document.getElementById("prompt");
+      const optionsEl = document.getElementById("options");
+      const messageEl = document.getElementById("message");
+      const progressEl = document.getElementById("progress");
+      const scoreEl = document.getElementById("score");
+      const streakEl = document.getElementById("streak");
+      const nextBtn = document.getElementById("nextBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      let deck = [];
+      let current = null;
+      let questionNumber = 0;
+      let score = 0;
+      let streak = 0;
+      let answered = false;
+
+      const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+
+      function initGame() {
+        deck = shuffle(words);
+        questionNumber = 0;
+        score = 0;
+        streak = 0;
+        answered = false;
+        messageEl.textContent = "";
+        messageEl.className = "message";
+        updateStatus();
+        loadQuestion();
+      }
+
+      function updateStatus() {
+        progressEl.textContent = `問題: ${Math.min(questionNumber + 1, words.length)} / ${words.length}`;
+        scoreEl.textContent = `スコア: ${score}`;
+        streakEl.textContent = `連続正解: ${streak}`;
+      }
+
+      function loadQuestion() {
+        if (deck.length === 0) {
+          promptEl.textContent = "おつかれさま！すべての問題が終了しました 🎉";
+          optionsEl.innerHTML = "";
+          messageEl.textContent = `最終スコア: ${score} / ${words.length * 10}`;
+          messageEl.className = "message ok";
+          progressEl.textContent = `問題: ${words.length} / ${words.length}`;
+          return;
+        }
+
+        answered = false;
+        current = deck.shift();
+        promptEl.textContent = `「${current.jp}」の意味はどれ？`;
+
+        const wrongChoices = shuffle(
+          words.filter((w) => w.meaning !== current.meaning).map((w) => w.meaning),
+        ).slice(0, 3);
+
+        const choices = shuffle([current.meaning, ...wrongChoices]);
+        optionsEl.innerHTML = "";
+
+        choices.forEach((choice) => {
+          const btn = document.createElement("button");
+          btn.textContent = choice;
+          btn.className = "option-btn";
+          btn.addEventListener("click", () => handleAnswer(btn, choice));
+          optionsEl.appendChild(btn);
+        });
+
+        messageEl.textContent = "";
+        messageEl.className = "message";
+        updateStatus();
+      }
+
+      function handleAnswer(btn, selected) {
+        if (answered) return;
+        answered = true;
+
+        const buttons = document.querySelectorAll(".option-btn");
+        buttons.forEach((b) => (b.disabled = true));
+
+        if (selected === current.meaning) {
+          score += 10;
+          streak += 1;
+          btn.classList.add("correct");
+          messageEl.textContent = "正解！すばらしいです。";
+          messageEl.className = "message ok";
+        } else {
+          streak = 0;
+          btn.classList.add("wrong");
+          buttons.forEach((b) => {
+            if (b.textContent === current.meaning) b.classList.add("correct");
+          });
+          messageEl.textContent = `不正解。正解は「${current.meaning}」です。`;
+          messageEl.className = "message ng";
+        }
+
+        questionNumber += 1;
+        updateStatus();
+      }
+
+      nextBtn.addEventListener("click", loadQuestion);
+      resetBtn.addEventListener("click", initGame);
+
+      initGame();
+    </script>
+  </body>
+</html>
