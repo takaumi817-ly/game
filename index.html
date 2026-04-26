@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ことばマスター</title>
+    <title>にほんご N3 ことばげーむ</title>
     <style>
       :root {
         --bg: #f5f7fb;
@@ -31,7 +31,7 @@
       }
 
       .app {
-        width: min(900px, 100%);
+        width: min(980px, 100%);
         background: var(--card);
         border-radius: 18px;
         box-shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
@@ -46,11 +46,11 @@
 
       h1 {
         margin: 0;
-        font-size: 1.4rem;
+        font-size: 1.35rem;
       }
 
       .subtitle {
-        margin-top: 0.35rem;
+        margin-top: 0.4rem;
         color: #334155;
         font-size: 0.95rem;
       }
@@ -63,9 +63,9 @@
 
       .status {
         display: flex;
-        gap: 1rem;
+        gap: 0.7rem;
         flex-wrap: wrap;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
       }
 
       .badge {
@@ -81,10 +81,22 @@
         background: #fff;
       }
 
+      .mode {
+        display: inline-block;
+        margin-bottom: 0.6rem;
+        font-size: 0.84rem;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        color: #3730a3;
+        border-radius: 999px;
+        padding: 0.25rem 0.65rem;
+      }
+
       .prompt {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         font-weight: 700;
         margin-bottom: 0.8rem;
+        line-height: 1.5;
       }
 
       .options {
@@ -100,7 +112,7 @@
         color: #0f172a;
         border-radius: 10px;
         padding: 0.7rem 0.8rem;
-        font-size: 0.98rem;
+        font-size: 0.96rem;
         cursor: pointer;
         transition: 0.2s ease;
       }
@@ -136,6 +148,7 @@
       .message {
         min-height: 1.5em;
         font-weight: 600;
+        margin-top: 0.9rem;
       }
 
       .message.ok {
@@ -146,19 +159,23 @@
         color: var(--ng);
       }
 
-      details {
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 0.7rem 0.9rem;
+      .pos-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
       }
 
-      ul {
-        margin: 0.5rem 0 0;
+      .pos-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.45rem 0.6rem;
+        font-size: 0.88rem;
       }
 
       @media (max-width: 520px) {
         .prompt {
-          font-size: 1.2rem;
+          font-size: 1.15rem;
         }
       }
     </style>
@@ -166,54 +183,72 @@
   <body>
     <div class="app">
       <header>
-        <h1>ことばマスター 🇯🇵</h1>
-        <p class="subtitle">日本語の単語をクイズ形式で覚える学習ゲーム</p>
+        <h1>にほんご N3 ことばげーむ（ちゅうごくご たいおう）</h1>
+        <p class="subtitle">かなひょうきだけで ことばをまなぶ 4たくくいず + ききとりもーど</p>
       </header>
 
       <main>
         <section class="status" aria-live="polite">
-          <span class="badge" id="progress">問題: 0 / 0</span>
-          <span class="badge" id="score">スコア: 0</span>
-          <span class="badge" id="streak">連続正解: 0</span>
+          <span class="badge" id="progress">もんだい: 0 / 0</span>
+          <span class="badge" id="score">すこあ: 0</span>
+          <span class="badge" id="streak">れんぞくせいかい: 0</span>
+          <span class="badge" id="modeCount">ききとり: 0 もん</span>
         </section>
 
-        <section class="card" aria-label="クイズカード">
-          <div class="prompt" id="prompt">読み込み中...</div>
+        <section class="card" aria-label="くいずかーど">
+          <span class="mode" id="modeLabel">もーど: よみ</span>
+          <div class="prompt" id="prompt">よみこみちゅう...</div>
+          <div class="controls" id="audioControls" style="display: none">
+            <button id="playAudioBtn">🔊 もういちど きく</button>
+          </div>
           <div class="options" id="options"></div>
           <p id="message" class="message"></p>
         </section>
 
         <section class="controls">
-          <button class="primary" id="nextBtn">次の問題へ</button>
-          <button id="resetBtn">最初からやり直す</button>
+          <button class="primary" id="nextBtn">つぎのもんだい</button>
+          <button id="resetBtn">さいしょから</button>
         </section>
 
-        <details>
-          <summary>遊び方</summary>
-          <ul>
-            <li>表示された日本語単語の意味として正しい選択肢を選びます。</li>
-            <li>正解すると +10 点、不正解でも正解を確認して次に進めます。</li>
-            <li>連続正解数（ストリーク）を伸ばして語彙力アップ！</li>
-          </ul>
-        </details>
+        <section class="card">
+          <p style="margin-top: 0">N3 ごいを ひんしべつに ばらんすよく しゅつだいします。</p>
+          <div class="pos-summary" id="posSummary"></div>
+        </section>
       </main>
     </div>
 
     <script>
       const words = [
-        { jp: "猫", meaning: "cat" },
-        { jp: "犬", meaning: "dog" },
-        { jp: "学校", meaning: "school" },
-        { jp: "先生", meaning: "teacher" },
-        { jp: "水", meaning: "water" },
-        { jp: "山", meaning: "mountain" },
-        { jp: "海", meaning: "sea" },
-        { jp: "電車", meaning: "train" },
-        { jp: "友達", meaning: "friend" },
-        { jp: "時間", meaning: "time" },
-        { jp: "朝", meaning: "morning" },
-        { jp: "夜", meaning: "night" },
+        // めいし
+        { kana: "きかい", zh: "机会", pos: "めいし" },
+        { kana: "よてい", zh: "计划", pos: "めいし" },
+        { kana: "れんらく", zh: "联络", pos: "めいし" },
+        { kana: "しゅうかん", zh: "习惯", pos: "めいし" },
+        { kana: "けいけん", zh: "经验", pos: "めいし" },
+        // どうし
+        { kana: "つづける", zh: "继续", pos: "どうし" },
+        { kana: "くらべる", zh: "比较", pos: "どうし" },
+        { kana: "ふえる", zh: "增加", pos: "どうし" },
+        { kana: "まにあう", zh: "赶得上", pos: "どうし" },
+        { kana: "みつける", zh: "找到", pos: "どうし" },
+        // けいようし
+        { kana: "きびしい", zh: "严格", pos: "けいようし" },
+        { kana: "うれしい", zh: "高兴", pos: "けいようし" },
+        { kana: "たしか", zh: "确实", pos: "けいようし" },
+        { kana: "ゆたか", zh: "丰富", pos: "けいようし" },
+        { kana: "めんどう", zh: "麻烦", pos: "けいようし" },
+        // ふくし
+        { kana: "しっかり", zh: "扎实地", pos: "ふくし" },
+        { kana: "たいてい", zh: "大多", pos: "ふくし" },
+        { kana: "とつぜん", zh: "突然", pos: "ふくし" },
+        { kana: "できるだけ", zh: "尽量", pos: "ふくし" },
+        { kana: "とくに", zh: "特别", pos: "ふくし" },
       ];
+
+      const QUIZ_TYPES = {
+        meaning: "いみ せんたく",
+        listening: "ききとり",
+      };
 
       const promptEl = document.getElementById("prompt");
       const optionsEl = document.getElementById("options");
@@ -221,8 +256,13 @@
       const progressEl = document.getElementById("progress");
       const scoreEl = document.getElementById("score");
       const streakEl = document.getElementById("streak");
+      const modeCountEl = document.getElementById("modeCount");
+      const modeLabelEl = document.getElementById("modeLabel");
+      const posSummaryEl = document.getElementById("posSummary");
       const nextBtn = document.getElementById("nextBtn");
       const resetBtn = document.getElementById("resetBtn");
+      const playAudioBtn = document.getElementById("playAudioBtn");
+      const audioControlsEl = document.getElementById("audioControls");
 
       let deck = [];
       let current = null;
@@ -230,59 +270,154 @@
       let score = 0;
       let streak = 0;
       let answered = false;
+      let listeningCount = 0;
 
       const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
+      const groupedWords = words.reduce((acc, word) => {
+        if (!acc[word.pos]) acc[word.pos] = [];
+        acc[word.pos].push(word);
+        return acc;
+      }, {});
+
+      function buildBalancedDeck() {
+        const copied = Object.fromEntries(
+          Object.entries(groupedWords).map(([pos, items]) => [pos, shuffle(items)]),
+        );
+        const order = shuffle(Object.keys(copied));
+        const newDeck = [];
+
+        let hasWords = true;
+        while (hasWords) {
+          hasWords = false;
+          order.forEach((pos) => {
+            const picked = copied[pos].pop();
+            if (picked) {
+              newDeck.push(picked);
+              hasWords = true;
+            }
+          });
+        }
+
+        return newDeck;
+      }
+
+      function renderPosSummary() {
+        posSummaryEl.innerHTML = "";
+        Object.keys(groupedWords).forEach((pos) => {
+          const item = document.createElement("div");
+          item.className = "pos-item";
+          item.textContent = `${pos}: ${groupedWords[pos].length} ご`;
+          posSummaryEl.appendChild(item);
+        });
+      }
+
       function initGame() {
-        deck = shuffle(words);
+        deck = buildBalancedDeck();
         questionNumber = 0;
         score = 0;
         streak = 0;
         answered = false;
+        listeningCount = 0;
         messageEl.textContent = "";
         messageEl.className = "message";
+        renderPosSummary();
         updateStatus();
         loadQuestion();
       }
 
       function updateStatus() {
-        progressEl.textContent = `問題: ${Math.min(questionNumber + 1, words.length)} / ${words.length}`;
-        scoreEl.textContent = `スコア: ${score}`;
-        streakEl.textContent = `連続正解: ${streak}`;
+        progressEl.textContent = `もんだい: ${Math.min(questionNumber + 1, words.length)} / ${words.length}`;
+        scoreEl.textContent = `すこあ: ${score}`;
+        streakEl.textContent = `れんぞくせいかい: ${streak}`;
+        modeCountEl.textContent = `ききとり: ${listeningCount} もん`;
+      }
+
+      function speak(text) {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "ja-JP";
+        utter.rate = 0.93;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utter);
+      }
+
+      function getQuizType() {
+        if (questionNumber > 0 && questionNumber % 3 === 0) {
+          return "listening";
+        }
+        return Math.random() < 0.35 ? "listening" : "meaning";
+      }
+
+      function makeChoicesByMeaning(target) {
+        const wrongChoices = shuffle(words.filter((w) => w.zh !== target.zh).map((w) => w.zh)).slice(0, 3);
+        return shuffle([target.zh, ...wrongChoices]);
+      }
+
+      function makeChoicesByKana(target) {
+        const samePosWords = words.filter((w) => w.pos === target.pos && w.kana !== target.kana);
+        let candidates = samePosWords.map((w) => w.kana);
+
+        if (candidates.length < 3) {
+          const others = words.filter((w) => w.kana !== target.kana).map((w) => w.kana);
+          candidates = shuffle([...new Set([...candidates, ...others])]);
+        } else {
+          candidates = shuffle(candidates);
+        }
+
+        return shuffle([target.kana, ...candidates.slice(0, 3)]);
       }
 
       function loadQuestion() {
         if (deck.length === 0) {
-          promptEl.textContent = "おつかれさま！すべての問題が終了しました 🎉";
+          promptEl.textContent = "おつかれさま。ぜんもん しゅうりょう。";
           optionsEl.innerHTML = "";
-          messageEl.textContent = `最終スコア: ${score} / ${words.length * 10}`;
+          audioControlsEl.style.display = "none";
+          modeLabelEl.textContent = "もーど: しゅうりょう";
+          messageEl.textContent = `さいしゅうすこあ: ${score} / ${words.length * 10}`;
           messageEl.className = "message ok";
-          progressEl.textContent = `問題: ${words.length} / ${words.length}`;
+          progressEl.textContent = `もんだい: ${words.length} / ${words.length}`;
           return;
         }
 
         answered = false;
         current = deck.shift();
-        promptEl.textContent = `「${current.jp}」の意味はどれ？`;
+        const quizType = getQuizType();
+        current.quizType = quizType;
+        modeLabelEl.textContent = `もーど: ${QUIZ_TYPES[quizType]} / ${current.pos}`;
 
-        const wrongChoices = shuffle(
-          words.filter((w) => w.meaning !== current.meaning).map((w) => w.meaning),
-        ).slice(0, 3);
-
-        const choices = shuffle([current.meaning, ...wrongChoices]);
-        optionsEl.innerHTML = "";
-
-        choices.forEach((choice) => {
-          const btn = document.createElement("button");
-          btn.textContent = choice;
-          btn.className = "option-btn";
-          btn.addEventListener("click", () => handleAnswer(btn, choice));
-          optionsEl.appendChild(btn);
-        });
+        if (quizType === "meaning") {
+          audioControlsEl.style.display = "none";
+          promptEl.textContent = `「${current.kana}」の いみ（ちゅうごくご）は どれ？`;
+          renderOptions(makeChoicesByMeaning(current), "meaning");
+        } else {
+          listeningCount += 1;
+          audioControlsEl.style.display = "flex";
+          promptEl.textContent = "おとをきいて、あう ことばを えらんでください。";
+          renderOptions(makeChoicesByKana(current), "listening");
+          speak(current.kana);
+        }
 
         messageEl.textContent = "";
         messageEl.className = "message";
         updateStatus();
+      }
+
+      function renderOptions(choices, quizType) {
+        optionsEl.innerHTML = "";
+
+        choices.forEach((choice) => {
+          const btn = document.createElement("button");
+          if (quizType === "meaning") {
+            btn.textContent = choice;
+          } else {
+            const picked = words.find((w) => w.kana === choice);
+            btn.textContent = `${choice}（${picked?.zh ?? ""}）`;
+          }
+          btn.className = "option-btn";
+          btn.dataset.value = choice;
+          btn.addEventListener("click", () => handleAnswer(btn, choice));
+          optionsEl.appendChild(btn);
+        });
       }
 
       function handleAnswer(btn, selected) {
@@ -292,25 +427,33 @@
         const buttons = document.querySelectorAll(".option-btn");
         buttons.forEach((b) => (b.disabled = true));
 
-        if (selected === current.meaning) {
+        const correctValue = current.quizType === "meaning" ? current.zh : current.kana;
+
+        if (selected === correctValue) {
           score += 10;
           streak += 1;
           btn.classList.add("correct");
-          messageEl.textContent = "正解！すばらしいです。";
+          messageEl.textContent = `せいかい！ ${current.kana} = ${current.zh}`;
           messageEl.className = "message ok";
         } else {
           streak = 0;
           btn.classList.add("wrong");
           buttons.forEach((b) => {
-            if (b.textContent === current.meaning) b.classList.add("correct");
+            if (b.dataset.value === correctValue) b.classList.add("correct");
           });
-          messageEl.textContent = `不正解。正解は「${current.meaning}」です。`;
+          messageEl.textContent = `ざんねん。せいかいは「${current.kana}（${current.zh}）」です。`;
           messageEl.className = "message ng";
         }
 
         questionNumber += 1;
         updateStatus();
       }
+
+      playAudioBtn.addEventListener("click", () => {
+        if (current && current.quizType === "listening") {
+          speak(current.kana);
+        }
+      });
 
       nextBtn.addEventListener("click", loadQuestion);
       resetBtn.addEventListener("click", initGame);
