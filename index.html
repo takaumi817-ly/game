@@ -218,32 +218,81 @@
     </div>
 
     <script>
+      const TOTAL_QUESTIONS = 100;
       const words = [
         // めいし
-        { kana: "きかい", zh: "机会", pos: "めいし" },
-        { kana: "よてい", zh: "计划", pos: "めいし" },
-        { kana: "れんらく", zh: "联络", pos: "めいし" },
-        { kana: "しゅうかん", zh: "习惯", pos: "めいし" },
-        { kana: "けいけん", zh: "经验", pos: "めいし" },
+        { kana: "きかい", zh: "机会", pos: "めいし" }, { kana: "よてい", zh: "计划", pos: "めいし" },
+        { kana: "れんらく", zh: "联络", pos: "めいし" }, { kana: "しゅうかん", zh: "习惯", pos: "めいし" },
+        { kana: "けいけん", zh: "经验", pos: "めいし" }, { kana: "しんらい", zh: "信赖", pos: "めいし" },
+        { kana: "せいちょう", zh: "成长", pos: "めいし" }, { kana: "かだい", zh: "课题", pos: "めいし" },
+        { kana: "けっか", zh: "结果", pos: "めいし" }, { kana: "たいど", zh: "态度", pos: "めいし" },
+        { kana: "ほうほう", zh: "方法", pos: "めいし" }, { kana: "りゆう", zh: "理由", pos: "めいし" },
+        { kana: "じょうほう", zh: "信息", pos: "めいし" }, { kana: "かんきょう", zh: "环境", pos: "めいし" },
+        { kana: "しょるい", zh: "文件", pos: "めいし" }, { kana: "せきにん", zh: "责任", pos: "めいし" },
+        { kana: "ばしょ", zh: "地点", pos: "めいし" }, { kana: "きぼう", zh: "希望", pos: "めいし" },
+        { kana: "へんこう", zh: "变更", pos: "めいし" }, { kana: "かくにん", zh: "确认", pos: "めいし" },
+        { kana: "てんき", zh: "天气", pos: "めいし" }, { kana: "しせつ", zh: "设施", pos: "めいし" },
+        { kana: "こうつう", zh: "交通", pos: "めいし" }, { kana: "しゅくだい", zh: "作业", pos: "めいし" },
+        { kana: "ほうこく", zh: "报告", pos: "めいし" },
         // どうし
-        { kana: "つづける", zh: "继续", pos: "どうし" },
-        { kana: "くらべる", zh: "比较", pos: "どうし" },
-        { kana: "ふえる", zh: "增加", pos: "どうし" },
-        { kana: "まにあう", zh: "赶得上", pos: "どうし" },
-        { kana: "みつける", zh: "找到", pos: "どうし" },
+        { kana: "つづける", zh: "继续", pos: "どうし" }, { kana: "くらべる", zh: "比较", pos: "どうし" },
+        { kana: "ふえる", zh: "增加", pos: "どうし" }, { kana: "まにあう", zh: "赶得上", pos: "どうし" },
+        { kana: "みつける", zh: "找到", pos: "どうし" }, { kana: "たしかめる", zh: "核实", pos: "どうし" },
+        { kana: "えらぶ", zh: "选择", pos: "どうし" }, { kana: "なおす", zh: "修改", pos: "どうし" },
+        { kana: "しらべる", zh: "调查", pos: "どうし" }, { kana: "しらせる", zh: "通知", pos: "どうし" },
+        { kana: "おぼえる", zh: "记住", pos: "どうし" }, { kana: "わすれる", zh: "忘记", pos: "どうし" },
+        { kana: "きめる", zh: "决定", pos: "どうし" }, { kana: "てつだう", zh: "帮忙", pos: "どうし" },
+        { kana: "かたづける", zh: "整理", pos: "どうし" }, { kana: "つたえる", zh: "传达", pos: "どうし" },
+        { kana: "まもる", zh: "遵守", pos: "どうし" }, { kana: "あずける", zh: "寄存", pos: "どうし" },
+        { kana: "はこぶ", zh: "搬运", pos: "どうし" }, { kana: "そだてる", zh: "培养", pos: "どうし" },
+        { kana: "せつめいする", zh: "说明", pos: "どうし" }, { kana: "そうだんする", zh: "商量", pos: "どうし" },
+        { kana: "れんしゅうする", zh: "练习", pos: "どうし" }, { kana: "じゅんびする", zh: "准备", pos: "どうし" },
+        { kana: "しゅっぱつする", zh: "出发", pos: "どうし" },
         // けいようし
-        { kana: "きびしい", zh: "严格", pos: "けいようし" },
-        { kana: "うれしい", zh: "高兴", pos: "けいようし" },
-        { kana: "たしか", zh: "确实", pos: "けいようし" },
-        { kana: "ゆたか", zh: "丰富", pos: "けいようし" },
-        { kana: "めんどう", zh: "麻烦", pos: "けいようし" },
+        { kana: "きびしい", zh: "严格", pos: "けいようし" }, { kana: "うれしい", zh: "高兴", pos: "けいようし" },
+        { kana: "たしか", zh: "确实", pos: "けいようし" }, { kana: "ゆたか", zh: "丰富", pos: "けいようし" },
+        { kana: "めんどう", zh: "麻烦", pos: "けいようし" }, { kana: "あんぜん", zh: "安全", pos: "けいようし" },
+        { kana: "ふあん", zh: "不安", pos: "けいようし" }, { kana: "たいせつ", zh: "重要", pos: "けいようし" },
+        { kana: "べんり", zh: "方便", pos: "けいようし" }, { kana: "ふべん", zh: "不便", pos: "けいようし" },
+        { kana: "しんせつ", zh: "亲切", pos: "けいようし" }, { kana: "しずか", zh: "安静", pos: "けいようし" },
+        { kana: "にぎやか", zh: "热闹", pos: "けいようし" }, { kana: "ゆうめい", zh: "有名", pos: "けいようし" },
+        { kana: "とくべつ", zh: "特别的", pos: "けいようし" }, { kana: "かんたん", zh: "简单", pos: "けいようし" },
+        { kana: "ふくざつ", zh: "复杂", pos: "けいようし" }, { kana: "じゅうよう", zh: "关键", pos: "けいようし" },
+        { kana: "あたたかい", zh: "温暖", pos: "けいようし" }, { kana: "すずしい", zh: "凉爽", pos: "けいようし" },
+        { kana: "すばらしい", zh: "极好", pos: "けいようし" }, { kana: "ざんねん", zh: "遗憾", pos: "けいようし" },
+        { kana: "けんこう", zh: "健康", pos: "けいようし" }, { kana: "まじめ", zh: "认真", pos: "けいようし" },
+        { kana: "きんちょう", zh: "紧张", pos: "けいようし" },
         // ふくし
-        { kana: "しっかり", zh: "扎实地", pos: "ふくし" },
-        { kana: "たいてい", zh: "大多", pos: "ふくし" },
-        { kana: "とつぜん", zh: "突然", pos: "ふくし" },
-        { kana: "できるだけ", zh: "尽量", pos: "ふくし" },
-        { kana: "とくに", zh: "特别", pos: "ふくし" },
+        { kana: "しっかり", zh: "扎实地", pos: "ふくし" }, { kana: "たいてい", zh: "大多", pos: "ふくし" },
+        { kana: "とつぜん", zh: "突然", pos: "ふくし" }, { kana: "できるだけ", zh: "尽量", pos: "ふくし" },
+        { kana: "とくに", zh: "特别地", pos: "ふくし" }, { kana: "さいきん", zh: "最近", pos: "ふくし" },
+        { kana: "もうすぐ", zh: "马上", pos: "ふくし" }, { kana: "たまに", zh: "偶尔", pos: "ふくし" },
+        { kana: "いつも", zh: "总是", pos: "ふくし" }, { kana: "ぜったいに", zh: "绝对", pos: "ふくし" },
+        { kana: "かなり", zh: "相当", pos: "ふくし" }, { kana: "ずいぶん", zh: "非常", pos: "ふくし" },
+        { kana: "いっしょうけんめい", zh: "拼命地", pos: "ふくし" }, { kana: "じゅんばんに", zh: "按顺序", pos: "ふくし" },
+        { kana: "なるべく", zh: "尽可能", pos: "ふくし" }, { kana: "もちろん", zh: "当然", pos: "ふくし" },
+        { kana: "すぐに", zh: "立刻", pos: "ふくし" }, { kana: "ゆっくり", zh: "慢慢地", pos: "ふくし" },
+        { kana: "ちゃんと", zh: "好好地", pos: "ふくし" }, { kana: "たしかに", zh: "的确", pos: "ふくし" },
+        { kana: "おもに", zh: "主要地", pos: "ふくし" }, { kana: "やっと", zh: "终于", pos: "ふくし" },
+        { kana: "さらに", zh: "进一步", pos: "ふくし" }, { kana: "ほとんど", zh: "几乎", pos: "ふくし" },
+        { kana: "まったく", zh: "完全", pos: "ふくし" },
       ];
+      const baseDistractorPool = [
+        "历史","文化","科技","医学","艺术","语言","季节","价格","地图","方向","旅行","观光","车站","机场","港口","银行","邮局","市场","超市","餐厅",
+        "饮料","水果","蔬菜","衣服","鞋子","帽子","钥匙","手机","电脑","网络","照片","音乐","电影","新闻","广播","杂志","小说","漫画","诗歌","教育",
+        "大学","研究","考试","成绩","规则","法律","政策","税金","预算","收入","支出","利润","风险","质量","速度","距离","高度","深度","重量","温度",
+        "湿度","气压","地震","台风","洪水","火灾","救援","防灾","能源","电力","燃气","水道","道路","桥梁","隧道","建筑","设计","工程","农业","工业",
+        "贸易","出口","进口","合同","会议","演讲","讨论","合作","竞争","创新","发明","发现","挑战","目标","策略","管理","领导","训练","经验值","反馈",
+        "兴趣","梦想","勇气","耐心","友情","家庭","邻居","社区","幸福","压力","休息","睡眠","运动","营养","体力","精神","记忆","想象","判断","观察",
+        "整理术","计划表","日程","预约","申请","许可","手续","证件","护照","签证","订单","配送","库存","维修","保养","清洁","安全带","保险","事故","故障",
+        "建议","提醒","注意","重点","核心","概要","细节","背景","结论","目的","影响","趋势","实例","证据","分析","统计","数据","图表","素材","资源",
+        "工具","设备","系统","平台","服务","升级","版本","密码","账号","权限","通知栏","选项","界面","按钮","设置","主题","模式","频道","直播","录音",
+        "字幕","翻译","词典","语法","发音","听力","阅读","写作","会话","表达","口音","礼仪","敬语","场合","印象","感觉","魅力","价值","信号","提示"
+      ];
+      const distractorPrefix = ["学习","工作","生活","语言","旅行","健康","家庭","社会","经济","文化","技术","教育","服务","环境","安全","管理"];
+      const distractorSuffix = ["计划","方式","系统","活动","经验","资料","对策","条件","规则","流程","成果","任务","效率","内容","状态","资源","策略","方案","结构","场景"];
+      const generatedDistractors = distractorPrefix.flatMap((p) => distractorSuffix.map((s) => `${p}${s}`));
+      const distractorPool = [...new Set([...baseDistractorPool, ...generatedDistractors])];
 
       const QUIZ_TYPES = {
         meaning: "いみ せんたく",
@@ -271,6 +320,7 @@
       let streak = 0;
       let answered = false;
       let listeningCount = 0;
+      let usedOptions = new Set();
 
       const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
@@ -279,6 +329,7 @@
         acc[word.pos].push(word);
         return acc;
       }, {});
+      const answerMeaningSet = new Set(words.map((word) => word.zh));
 
       function buildBalancedDeck() {
         const copied = Object.fromEntries(
@@ -299,7 +350,7 @@
           });
         }
 
-        return newDeck;
+        return newDeck.slice(0, TOTAL_QUESTIONS);
       }
 
       function renderPosSummary() {
@@ -319,6 +370,7 @@
         streak = 0;
         answered = false;
         listeningCount = 0;
+        usedOptions = new Set();
         messageEl.textContent = "";
         messageEl.className = "message";
         renderPosSummary();
@@ -327,7 +379,7 @@
       }
 
       function updateStatus() {
-        progressEl.textContent = `もんだい: ${Math.min(questionNumber + 1, words.length)} / ${words.length}`;
+        progressEl.textContent = `もんだい: ${Math.min(questionNumber + 1, TOTAL_QUESTIONS)} / ${TOTAL_QUESTIONS}`;
         scoreEl.textContent = `すこあ: ${score}`;
         streakEl.textContent = `れんぞくせいかい: ${streak}`;
         modeCountEl.textContent = `ききとり: ${listeningCount} もん`;
@@ -349,22 +401,18 @@
       }
 
       function makeChoicesByMeaning(target) {
-        const wrongChoices = shuffle(words.filter((w) => w.zh !== target.zh).map((w) => w.zh)).slice(0, 3);
-        return shuffle([target.zh, ...wrongChoices]);
-      }
-
-      function makeChoicesByKana(target) {
-        const samePosWords = words.filter((w) => w.pos === target.pos && w.kana !== target.kana);
-        let candidates = samePosWords.map((w) => w.kana);
-
-        if (candidates.length < 3) {
-          const others = words.filter((w) => w.kana !== target.kana).map((w) => w.kana);
-          candidates = shuffle([...new Set([...candidates, ...others])]);
-        } else {
-          candidates = shuffle(candidates);
-        }
-
-        return shuffle([target.kana, ...candidates.slice(0, 3)]);
+        const wrongChoices = [];
+        const candidatePool = shuffle(
+          distractorPool.filter(
+            (choice) => !usedOptions.has(choice) && choice !== target.zh && !answerMeaningSet.has(choice),
+          ),
+        );
+        candidatePool.forEach((choice) => {
+          if (wrongChoices.length < 3) wrongChoices.push(choice);
+        });
+        const finalChoices = shuffle([target.zh, ...wrongChoices]);
+        finalChoices.forEach((choice) => usedOptions.add(choice));
+        return finalChoices;
       }
 
       function loadQuestion() {
@@ -373,9 +421,9 @@
           optionsEl.innerHTML = "";
           audioControlsEl.style.display = "none";
           modeLabelEl.textContent = "もーど: しゅうりょう";
-          messageEl.textContent = `さいしゅうすこあ: ${score} / ${words.length * 10}`;
+          messageEl.textContent = `さいしゅうすこあ: ${score} / ${TOTAL_QUESTIONS * 10}`;
           messageEl.className = "message ok";
-          progressEl.textContent = `もんだい: ${words.length} / ${words.length}`;
+          progressEl.textContent = `もんだい: ${TOTAL_QUESTIONS} / ${TOTAL_QUESTIONS}`;
           return;
         }
 
@@ -393,7 +441,7 @@
           listeningCount += 1;
           audioControlsEl.style.display = "flex";
           promptEl.textContent = "おとをきいて、あう ことばを えらんでください。";
-          renderOptions(makeChoicesByKana(current), "listening");
+          renderOptions(makeChoicesByMeaning(current), "listening");
           speak(current.kana);
         }
 
@@ -407,12 +455,7 @@
 
         choices.forEach((choice) => {
           const btn = document.createElement("button");
-          if (quizType === "meaning") {
-            btn.textContent = choice;
-          } else {
-            const picked = words.find((w) => w.kana === choice);
-            btn.textContent = `${choice}（${picked?.zh ?? ""}）`;
-          }
+          btn.textContent = choice;
           btn.className = "option-btn";
           btn.dataset.value = choice;
           btn.addEventListener("click", () => handleAnswer(btn, choice));
@@ -427,7 +470,7 @@
         const buttons = document.querySelectorAll(".option-btn");
         buttons.forEach((b) => (b.disabled = true));
 
-        const correctValue = current.quizType === "meaning" ? current.zh : current.kana;
+        const correctValue = current.zh;
 
         if (selected === correctValue) {
           score += 10;
