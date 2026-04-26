@@ -225,25 +225,55 @@
         { kana: "れんらく", zh: "联络", pos: "めいし" },
         { kana: "しゅうかん", zh: "习惯", pos: "めいし" },
         { kana: "けいけん", zh: "经验", pos: "めいし" },
+        { kana: "りゆう", zh: "理由", pos: "めいし" },
+        { kana: "ちゅうい", zh: "注意", pos: "めいし" },
+        { kana: "じゅんび", zh: "准备", pos: "めいし" },
+        { kana: "やくそく", zh: "约定", pos: "めいし" },
+        { kana: "しつもん", zh: "提问", pos: "めいし" },
+        { kana: "へんじ", zh: "回复", pos: "めいし" },
+        { kana: "きぼう", zh: "希望", pos: "めいし" },
         // どうし
         { kana: "つづける", zh: "继续", pos: "どうし" },
         { kana: "くらべる", zh: "比较", pos: "どうし" },
         { kana: "ふえる", zh: "增加", pos: "どうし" },
         { kana: "まにあう", zh: "赶得上", pos: "どうし" },
         { kana: "みつける", zh: "找到", pos: "どうし" },
+        { kana: "たしかめる", zh: "确认", pos: "どうし" },
+        { kana: "あつめる", zh: "收集", pos: "どうし" },
+        { kana: "つたえる", zh: "传达", pos: "どうし" },
+        { kana: "えらぶ", zh: "选择", pos: "どうし" },
+        { kana: "しらせる", zh: "通知", pos: "どうし" },
+        { kana: "たのむ", zh: "拜托", pos: "どうし" },
+        { kana: "ふくむ", zh: "包含", pos: "どうし" },
         // けいようし
         { kana: "きびしい", zh: "严格", pos: "けいようし" },
         { kana: "うれしい", zh: "高兴", pos: "けいようし" },
         { kana: "たしか", zh: "确实", pos: "けいようし" },
         { kana: "ゆたか", zh: "丰富", pos: "けいようし" },
         { kana: "めんどう", zh: "麻烦", pos: "けいようし" },
+        { kana: "ていねい", zh: "礼貌", pos: "けいようし" },
+        { kana: "たいせつ", zh: "重要", pos: "けいようし" },
+        { kana: "ふべん", zh: "不方便", pos: "けいようし" },
+        { kana: "あんしん", zh: "放心", pos: "けいようし" },
+        { kana: "じゆう", zh: "自由", pos: "けいようし" },
+        { kana: "ふくざつ", zh: "复杂", pos: "けいようし" },
+        { kana: "きけん", zh: "危险", pos: "けいようし" },
         // ふくし
         { kana: "しっかり", zh: "扎实地", pos: "ふくし" },
         { kana: "たいてい", zh: "大多", pos: "ふくし" },
         { kana: "とつぜん", zh: "突然", pos: "ふくし" },
         { kana: "できるだけ", zh: "尽量", pos: "ふくし" },
         { kana: "とくに", zh: "特别", pos: "ふくし" },
+        { kana: "もちろん", zh: "当然", pos: "ふくし" },
+        { kana: "さきに", zh: "先", pos: "ふくし" },
+        { kana: "しばらく", zh: "暂时", pos: "ふくし" },
+        { kana: "けっこう", zh: "相当", pos: "ふくし" },
+        { kana: "すでに", zh: "已经", pos: "ふくし" },
+        { kana: "いよいよ", zh: "终于", pos: "ふくし" },
+        { kana: "たまたま", zh: "碰巧", pos: "ふくし" },
       ];
+
+      const MAX_QUESTIONS = 100;
 
       const QUIZ_TYPES = {
         meaning: "意味選択",
@@ -271,8 +301,16 @@
       let streak = 0;
       let answered = false;
       let listeningCount = 0;
+      let totalQuestions = 0;
+      let usedDistractors = new Set();
+      let recentChoices = [];
+      let usedChoiceSets = new Set();
+
+      const DISTRACTOR_COUNT = 3;
+      const RECENT_WINDOW_SIZE = 12;
 
       const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+      const allChineseChoices = [...new Set(words.map((word) => word.zh))];
 
       const groupedWords = words.reduce((acc, word) => {
         if (!acc[word.pos]) acc[word.pos] = [];
@@ -280,7 +318,7 @@
         return acc;
       }, {});
 
-      function buildBalancedDeck() {
+      function buildBalancedCycle() {
         const copied = Object.fromEntries(
           Object.entries(groupedWords).map(([pos, items]) => [pos, shuffle(items)]),
         );
@@ -302,6 +340,16 @@
         return newDeck;
       }
 
+      function buildQuestionDeck(maxQuestions) {
+        const newDeck = [];
+        while (newDeck.length < maxQuestions) {
+          const cycle = buildBalancedCycle();
+          const remain = maxQuestions - newDeck.length;
+          newDeck.push(...cycle.slice(0, remain));
+        }
+        return newDeck;
+      }
+
       function renderPosSummary() {
         posSummaryEl.innerHTML = "";
         Object.keys(groupedWords).forEach((pos) => {
@@ -313,12 +361,16 @@
       }
 
       function initGame() {
-        deck = buildBalancedDeck();
+        totalQuestions = MAX_QUESTIONS;
+        deck = buildQuestionDeck(totalQuestions);
         questionNumber = 0;
         score = 0;
         streak = 0;
         answered = false;
         listeningCount = 0;
+        usedDistractors = new Set();
+        recentChoices = [];
+        usedChoiceSets = new Set();
         messageEl.textContent = "";
         messageEl.className = "message";
         renderPosSummary();
@@ -327,7 +379,7 @@
       }
 
       function updateStatus() {
-        progressEl.textContent = `問題: ${Math.min(questionNumber + 1, words.length)} / ${words.length}`;
+        progressEl.textContent = `問題: ${Math.min(questionNumber + 1, totalQuestions)} / ${totalQuestions}`;
         scoreEl.textContent = `スコア: ${score}`;
         streakEl.textContent = `連続正解: ${streak}`;
         modeCountEl.textContent = `聞き取り: ${listeningCount}問`;
@@ -348,20 +400,69 @@
         return Math.random() < 0.35 ? "listening" : "meaning";
       }
 
+      function buildDistractors(targetZh) {
+        const candidates = allChineseChoices.filter((zh) => zh !== targetZh);
+        const recentSet = new Set(recentChoices);
+        const tiers = [
+          candidates.filter((zh) => !usedDistractors.has(zh) && !recentSet.has(zh)),
+          candidates.filter((zh) => !usedDistractors.has(zh)),
+          candidates.filter((zh) => !recentSet.has(zh)),
+          candidates,
+        ];
+
+        const picked = [];
+        tiers.forEach((tier) => {
+          shuffle(tier).forEach((choice) => {
+            if (picked.length >= DISTRACTOR_COUNT) return;
+            if (!picked.includes(choice)) picked.push(choice);
+          });
+        });
+
+        return picked.slice(0, DISTRACTOR_COUNT);
+      }
+
       function makeChoicesByMeaning(target) {
-        const wrongChoices = shuffle(words.filter((w) => w.zh !== target.zh).map((w) => w.zh)).slice(0, 3);
-        return shuffle([target.zh, ...wrongChoices]);
+        let selected = null;
+
+        for (let attempt = 0; attempt < 24; attempt += 1) {
+          const distractors = buildDistractors(target.zh);
+          const choices = shuffle([target.zh, ...distractors]);
+          const uniqueChoices = [...new Set(choices)];
+          if (uniqueChoices.length !== DISTRACTOR_COUNT + 1) continue;
+
+          const setKey = [...uniqueChoices].sort().join("|");
+          if (!usedChoiceSets.has(setKey)) {
+            selected = { uniqueChoices, distractors, setKey };
+            break;
+          }
+        }
+
+        if (!selected) {
+          const distractors = buildDistractors(target.zh);
+          const uniqueChoices = [...new Set(shuffle([target.zh, ...distractors]))];
+          const setKey = [...uniqueChoices].sort().join("|");
+          selected = { uniqueChoices, distractors, setKey };
+        }
+
+        selected.distractors.forEach((choice) => usedDistractors.add(choice));
+        recentChoices.push(...selected.distractors);
+        if (recentChoices.length > RECENT_WINDOW_SIZE) {
+          recentChoices = recentChoices.slice(-RECENT_WINDOW_SIZE);
+        }
+        usedChoiceSets.add(selected.setKey);
+
+        return shuffle(selected.uniqueChoices);
       }
 
       function loadQuestion() {
-        if (deck.length === 0) {
+        if (questionNumber >= totalQuestions || deck.length === 0) {
           promptEl.textContent = "おつかれさま。ぜんもん しゅうりょう。";
           optionsEl.innerHTML = "";
           audioControlsEl.style.display = "none";
           modeLabelEl.textContent = "モード: 終了";
-          messageEl.textContent = `さいしゅうすこあ: ${score} / ${words.length * 10}`;
+          messageEl.textContent = `さいしゅうすこあ: ${score} / ${totalQuestions * 10}`;
           messageEl.className = "message ok";
-          progressEl.textContent = `問題: ${words.length} / ${words.length}`;
+          progressEl.textContent = `問題: ${totalQuestions} / ${totalQuestions}`;
           return;
         }
 
