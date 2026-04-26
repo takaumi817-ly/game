@@ -166,6 +166,35 @@ button:hover {
   font-size: 0.88rem;
 }
 
+.review-list {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.8rem;
+  background: #f8fafc;
+}
+
+.review-list h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.review-item,
+.review-more {
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.review-more {
+  color: #475569;
+  font-weight: 700;
+}
+
 @media (max-width: 520px) {
   .prompt {
     font-size: 1.15rem;

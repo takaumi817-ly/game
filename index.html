@@ -10,7 +10,7 @@
     <div class="app">
       <header>
         <h1>日本語 N3 ことばゲーム（中国語対応）</h1>
-        <p class="subtitle">出題文はかな表記、選択肢は中国語中心の4択クイズ + 聞き取りモード</p>
+        <p class="subtitle">意味選択・聞き取り・文脈選択で、中国語母語話者が迷いやすい語を練習します</p>
       </header>
 
       <main>
@@ -18,7 +18,7 @@
           <span class="badge" id="progress">問題: 0 / 0</span>
           <span class="badge" id="score">スコア: 0</span>
           <span class="badge" id="streak">連続正解: 0</span>
-          <span class="badge" id="modeCount">聞き取り: 0 問</span>
+          <span class="badge" id="modeCount">聞き取り: 0問 / 文脈: 0問</span>
         </section>
 
         <section class="card" aria-label="クイズカード">
@@ -33,6 +33,7 @@
 
         <section class="controls">
           <button class="primary" id="nextBtn">次の問題</button>
+          <button id="savedReviewBtn" hidden>保存した苦手語を復習</button>
           <button id="resetBtn">最初から</button>
         </section>
 
