@@ -183,35 +183,35 @@
   <body>
     <div class="app">
       <header>
-        <h1>にほんご N3 ことばげーむ（ちゅうごくご たいおう）</h1>
-        <p class="subtitle">かなひょうきだけで ことばをまなぶ 4たくくいず + ききとりもーど</p>
+        <h1>日本語 N3 ことばゲーム（中国語対応）</h1>
+        <p class="subtitle">出題文はかな表記、選択肢は中国語中心の4択クイズ + 聞き取りモード</p>
       </header>
 
       <main>
         <section class="status" aria-live="polite">
-          <span class="badge" id="progress">もんだい: 0 / 0</span>
-          <span class="badge" id="score">すこあ: 0</span>
-          <span class="badge" id="streak">れんぞくせいかい: 0</span>
-          <span class="badge" id="modeCount">ききとり: 0 もん</span>
+          <span class="badge" id="progress">問題: 0 / 0</span>
+          <span class="badge" id="score">スコア: 0</span>
+          <span class="badge" id="streak">連続正解: 0</span>
+          <span class="badge" id="modeCount">聞き取り: 0 問</span>
         </section>
 
-        <section class="card" aria-label="くいずかーど">
-          <span class="mode" id="modeLabel">もーど: よみ</span>
+        <section class="card" aria-label="クイズカード">
+          <span class="mode" id="modeLabel">モード: 読み</span>
           <div class="prompt" id="prompt">よみこみちゅう...</div>
           <div class="controls" id="audioControls" style="display: none">
-            <button id="playAudioBtn">🔊 もういちど きく</button>
+            <button id="playAudioBtn">🔊 もう一度聞く</button>
           </div>
           <div class="options" id="options"></div>
           <p id="message" class="message"></p>
         </section>
 
         <section class="controls">
-          <button class="primary" id="nextBtn">つぎのもんだい</button>
-          <button id="resetBtn">さいしょから</button>
+          <button class="primary" id="nextBtn">次の問題</button>
+          <button id="resetBtn">最初から</button>
         </section>
 
         <section class="card">
-          <p style="margin-top: 0">N3 ごいを ひんしべつに ばらんすよく しゅつだいします。</p>
+          <p style="margin-top: 0">N3語彙を品詞別にバランスよく出題します。</p>
           <div class="pos-summary" id="posSummary"></div>
         </section>
       </main>
@@ -246,8 +246,8 @@
       ];
 
       const QUIZ_TYPES = {
-        meaning: "いみ せんたく",
-        listening: "ききとり",
+        meaning: "意味選択",
+        listening: "聞き取り",
       };
 
       const promptEl = document.getElementById("prompt");
@@ -307,7 +307,7 @@
         Object.keys(groupedWords).forEach((pos) => {
           const item = document.createElement("div");
           item.className = "pos-item";
-          item.textContent = `${pos}: ${groupedWords[pos].length} ご`;
+          item.textContent = `${pos}: ${groupedWords[pos].length}語`;
           posSummaryEl.appendChild(item);
         });
       }
@@ -327,10 +327,10 @@
       }
 
       function updateStatus() {
-        progressEl.textContent = `もんだい: ${Math.min(questionNumber + 1, words.length)} / ${words.length}`;
-        scoreEl.textContent = `すこあ: ${score}`;
-        streakEl.textContent = `れんぞくせいかい: ${streak}`;
-        modeCountEl.textContent = `ききとり: ${listeningCount} もん`;
+        progressEl.textContent = `問題: ${Math.min(questionNumber + 1, words.length)} / ${words.length}`;
+        scoreEl.textContent = `スコア: ${score}`;
+        streakEl.textContent = `連続正解: ${streak}`;
+        modeCountEl.textContent = `聞き取り: ${listeningCount}問`;
       }
 
       function speak(text) {
@@ -353,29 +353,15 @@
         return shuffle([target.zh, ...wrongChoices]);
       }
 
-      function makeChoicesByKana(target) {
-        const samePosWords = words.filter((w) => w.pos === target.pos && w.kana !== target.kana);
-        let candidates = samePosWords.map((w) => w.kana);
-
-        if (candidates.length < 3) {
-          const others = words.filter((w) => w.kana !== target.kana).map((w) => w.kana);
-          candidates = shuffle([...new Set([...candidates, ...others])]);
-        } else {
-          candidates = shuffle(candidates);
-        }
-
-        return shuffle([target.kana, ...candidates.slice(0, 3)]);
-      }
-
       function loadQuestion() {
         if (deck.length === 0) {
           promptEl.textContent = "おつかれさま。ぜんもん しゅうりょう。";
           optionsEl.innerHTML = "";
           audioControlsEl.style.display = "none";
-          modeLabelEl.textContent = "もーど: しゅうりょう";
+          modeLabelEl.textContent = "モード: 終了";
           messageEl.textContent = `さいしゅうすこあ: ${score} / ${words.length * 10}`;
           messageEl.className = "message ok";
-          progressEl.textContent = `もんだい: ${words.length} / ${words.length}`;
+          progressEl.textContent = `問題: ${words.length} / ${words.length}`;
           return;
         }
 
@@ -383,7 +369,7 @@
         current = deck.shift();
         const quizType = getQuizType();
         current.quizType = quizType;
-        modeLabelEl.textContent = `もーど: ${QUIZ_TYPES[quizType]} / ${current.pos}`;
+        modeLabelEl.textContent = `モード: ${QUIZ_TYPES[quizType]} / ${current.pos}`;
 
         if (quizType === "meaning") {
           audioControlsEl.style.display = "none";
@@ -393,7 +379,7 @@
           listeningCount += 1;
           audioControlsEl.style.display = "flex";
           promptEl.textContent = "おとをきいて、あう ことばを えらんでください。";
-          renderOptions(makeChoicesByKana(current), "listening");
+          renderOptions(makeChoicesByMeaning(current), "listening");
           speak(current.kana);
         }
 
@@ -407,12 +393,7 @@
 
         choices.forEach((choice) => {
           const btn = document.createElement("button");
-          if (quizType === "meaning") {
-            btn.textContent = choice;
-          } else {
-            const picked = words.find((w) => w.kana === choice);
-            btn.textContent = `${choice}（${picked?.zh ?? ""}）`;
-          }
+          btn.textContent = choice;
           btn.className = "option-btn";
           btn.dataset.value = choice;
           btn.addEventListener("click", () => handleAnswer(btn, choice));
@@ -427,7 +408,7 @@
         const buttons = document.querySelectorAll(".option-btn");
         buttons.forEach((b) => (b.disabled = true));
 
-        const correctValue = current.quizType === "meaning" ? current.zh : current.kana;
+        const correctValue = current.zh;
 
         if (selected === correctValue) {
           score += 10;
