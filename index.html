@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JLPT N3 日语词汇训练</title>
+    <style>
+      :root {
+        --card: #ffffff;
+        --primary: #2563eb;
+        --primary-dark: #1e3a8a;
+        --ok: #0f766e;
+        --ng: #b91c1c;
+        --text: #0f172a;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "PingFang SC", "Microsoft YaHei", "Yu Gothic", sans-serif;
+        background: linear-gradient(160deg, #eff6ff, #f8fafc 35%, #ecfeff);
+        color: var(--text);
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+      }
+
+      .app {
+        width: min(920px, 100%);
+        background: var(--card);
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
+        overflow: hidden;
+      }
+
+      header {
+        padding: 1.2rem 1.5rem;
+        background: #dbeafe;
+        border-bottom: 1px solid #bfdbfe;
+      }
+
+      h1 { margin: 0; font-size: 1.45rem; }
+      .subtitle { margin-top: 0.35rem; color: #334155; font-size: 0.95rem; }
+
+      main { padding: 1.5rem; display: grid; gap: 1rem; }
+      .status { display: flex; gap: 0.8rem; flex-wrap: wrap; font-size: 0.95rem; }
+      .badge { background: #f1f5f9; padding: 0.45rem 0.8rem; border-radius: 999px; }
+
+      .card {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 1.2rem;
+        background: #fff;
+      }
+
+      .prompt { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.3rem; }
+      .hint { color: #475569; margin-bottom: 0.8rem; }
+
+      .options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 0.7rem;
+      }
+
+      .option-btn, button {
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        color: #0f172a;
+        border-radius: 10px;
+        padding: 0.72rem 0.8rem;
+        font-size: 0.98rem;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+      .option-btn:hover, button:hover { transform: translateY(-1px); border-color: #93c5fd; }
+      .option-btn.correct { background: #ccfbf1; border-color: #14b8a6; }
+      .option-btn.wrong { background: #fee2e2; border-color: #f87171; }
+
+      .controls { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+      .primary { background: var(--primary); color: #fff; border-color: var(--primary-dark); }
+
+      .message { min-height: 1.5em; font-weight: 600; }
+      .message.ok { color: var(--ok); }
+      .message.ng { color: var(--ng); }
+
+      details { border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.7rem 0.9rem; }
+      ul { margin: 0.5rem 0 0; }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>JLPT N3 日语词汇训练 🇯🇵</h1>
+        <p class="subtitle">面向中国学习者：按词性均衡练习动词、形容词、副词、名词</p>
+      </header>
+
+      <main>
+        <section class="status" aria-live="polite">
+          <span class="badge" id="progress">题目: 0 / 0</span>
+          <span class="badge" id="score">分数: 0</span>
+          <span class="badge" id="streak">连对: 0</span>
+          <span class="badge" id="posStat">当前词性: -</span>
+        </section>
+
+        <section class="card" aria-label="quiz-card">
+          <div class="prompt" id="prompt">加载中...</div>
+          <div class="hint" id="hint"></div>
+          <div class="options" id="options"></div>
+          <p id="message" class="message"></p>
+        </section>
+
+        <section class="controls">
+          <button class="primary" id="nextBtn">下一题</button>
+          <button id="resetBtn">重新开始</button>
+        </section>
+
+        <details>
+          <summary>玩法说明</summary>
+          <ul>
+            <li>题目显示一个日语词汇，请选择最准确的中文释义。</li>
+            <li>词汇难度定位 JLPT N3，且动词/形容词/副词/名词数量均衡。</li>
+            <li>答对 +10 分，答错会显示正确答案与词性。</li>
+          </ul>
+        </details>
+      </main>
+    </div>
+
+    <script>
+      const POS_LABEL = {
+        verb: "动词",
+        adjective: "形容词",
+        adverb: "副词",
+        noun: "名词",
+      };
+
+      const vocabulary = [
+        { jp: "増える", zh: "增加，增长", pos: "verb" },
+        { jp: "減る", zh: "减少", pos: "verb" },
+        { jp: "続ける", zh: "继续", pos: "verb" },
+        { jp: "間に合う", zh: "来得及", pos: "verb" },
+        { jp: "比べる", zh: "比较", pos: "verb" },
+
+        { jp: "複雑", zh: "复杂", pos: "adjective" },
+        { jp: "急", zh: "突然，紧急", pos: "adjective" },
+        { jp: "重要", zh: "重要", pos: "adjective" },
+        { jp: "正確", zh: "准确", pos: "adjective" },
+        { jp: "新鮮", zh: "新鲜", pos: "adjective" },
+
+        { jp: "例えば", zh: "例如", pos: "adverb" },
+        { jp: "たぶん", zh: "大概，可能", pos: "adverb" },
+        { jp: "必ず", zh: "一定，务必", pos: "adverb" },
+        { jp: "かなり", zh: "相当，很", pos: "adverb" },
+        { jp: "いつか", zh: "总有一天", pos: "adverb" },
+
+        { jp: "経験", zh: "经验", pos: "noun" },
+        { jp: "理由", zh: "理由", pos: "noun" },
+        { jp: "習慣", zh: "习惯", pos: "noun" },
+        { jp: "場合", zh: "情况，场合", pos: "noun" },
+        { jp: "関係", zh: "关系", pos: "noun" },
+      ];
+
+      const promptEl = document.getElementById("prompt");
+      const hintEl = document.getElementById("hint");
+      const optionsEl = document.getElementById("options");
+      const messageEl = document.getElementById("message");
+      const progressEl = document.getElementById("progress");
+      const scoreEl = document.getElementById("score");
+      const streakEl = document.getElementById("streak");
+      const posStatEl = document.getElementById("posStat");
+      const nextBtn = document.getElementById("nextBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      let deck = [];
+      let current = null;
+      let questionNumber = 0;
+      let score = 0;
+      let streak = 0;
+      let answered = false;
+
+      const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+
+      function buildBalancedDeck() {
+        const groups = {
+          verb: shuffle(vocabulary.filter((w) => w.pos === "verb")),
+          adjective: shuffle(vocabulary.filter((w) => w.pos === "adjective")),
+          adverb: shuffle(vocabulary.filter((w) => w.pos === "adverb")),
+          noun: shuffle(vocabulary.filter((w) => w.pos === "noun")),
+        };
+
+        const order = shuffle(["verb", "adjective", "adverb", "noun"]);
+        const combined = [];
+        const rounds = Math.max(...Object.values(groups).map((arr) => arr.length));
+
+        for (let i = 0; i < rounds; i += 1) {
+          order.forEach((pos) => {
+            if (groups[pos][i]) combined.push(groups[pos][i]);
+          });
+        }
+
+        return combined;
+      }
+
+      function initGame() {
+        deck = buildBalancedDeck();
+        questionNumber = 0;
+        score = 0;
+        streak = 0;
+        answered = false;
+        messageEl.textContent = "";
+        messageEl.className = "message";
+        updateStatus();
+        loadQuestion();
+      }
+
+      function updateStatus() {
+        progressEl.textContent = `题目: ${Math.min(questionNumber + 1, vocabulary.length)} / ${vocabulary.length}`;
+        scoreEl.textContent = `分数: ${score}`;
+        streakEl.textContent = `连对: ${streak}`;
+        posStatEl.textContent = `当前词性: ${current ? POS_LABEL[current.pos] : "-"}`;
+      }
+
+      function pickChoices(answer) {
+        const distractors = shuffle(vocabulary.filter((w) => w.zh !== answer.zh)).slice(0, 3);
+        return shuffle([answer, ...distractors]);
+      }
+
+      function loadQuestion() {
+        if (deck.length === 0) {
+          promptEl.textContent = "完成啦！N3 词汇本轮已练习结束 🎉";
+          hintEl.textContent = "可以点击“重新开始”再练一轮。";
+          optionsEl.innerHTML = "";
+          messageEl.textContent = `最终分数：${score} / ${vocabulary.length * 10}`;
+          messageEl.className = "message ok";
+          progressEl.textContent = `题目: ${vocabulary.length} / ${vocabulary.length}`;
+          posStatEl.textContent = "当前词性: -";
+          return;
+        }
+
+        answered = false;
+        current = deck.shift();
+        promptEl.textContent = `「${current.jp}」的中文意思是？`;
+        hintEl.textContent = `词性：${POS_LABEL[current.pos]}（JLPT N3）`;
+
+        const choices = pickChoices(current);
+        optionsEl.innerHTML = "";
+
+        choices.forEach((choice) => {
+          const btn = document.createElement("button");
+          btn.textContent = choice.zh;
+          btn.className = "option-btn";
+          btn.addEventListener("click", () => handleAnswer(btn, choice));
+          optionsEl.appendChild(btn);
+        });
+
+        messageEl.textContent = "";
+        messageEl.className = "message";
+        updateStatus();
+      }
+
+      function handleAnswer(btn, selected) {
+        if (answered) return;
+        answered = true;
+
+        const buttons = document.querySelectorAll(".option-btn");
+        buttons.forEach((b) => (b.disabled = true));
+
+        if (selected.zh === current.zh) {
+          score += 10;
+          streak += 1;
+          btn.classList.add("correct");
+          messageEl.textContent = `回答正确！「${current.jp}」= ${current.zh}`;
+          messageEl.className = "message ok";
+        } else {
+          streak = 0;
+          btn.classList.add("wrong");
+          buttons.forEach((b) => {
+            if (b.textContent === current.zh) b.classList.add("correct");
+          });
+          messageEl.textContent = `回答错误。正确答案：${current.zh}（${POS_LABEL[current.pos]}）`;
+          messageEl.className = "message ng";
+        }
+
+        questionNumber += 1;
+        updateStatus();
+      }
+
+      nextBtn.addEventListener("click", loadQuestion);
+      resetBtn.addEventListener("click", initGame);
+
+      initGame();
+    </script>
+  </body>
+</html>
